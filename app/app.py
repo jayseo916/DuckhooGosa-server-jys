@@ -1,3 +1,4 @@
+# -'-coding:utf-8-'-
 import os
 import pprint
 import sys
@@ -9,9 +10,10 @@ import json
 from flask_restful import reqparse, abort, Api, Resource
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 SECRETS_PATH = os.path.join(BASE_DIR + '/app/secret.json')
 secrets = json.loads(open(SECRETS_PATH).read())
-
+print(secrets, "기본 상태 조회")
 for key, value in secrets.items():
     setattr(sys.modules[__name__], key, value)
 
