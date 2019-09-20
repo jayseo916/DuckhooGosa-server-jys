@@ -1,19 +1,22 @@
-import os
-import pprint
+# -'-coding:utf-8-'-
 import sys
+import json
 import datetime
 from flask import Flask
 from pymongo import MongoClient
-import json
-
 from flask_restful import reqparse, abort, Api, Resource
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SECRETS_PATH = os.path.join(BASE_DIR + '/app/secret.json')
-secrets = json.loads(open(SECRETS_PATH).read())
+#
+from authlib.client import OAuth2Session
+import google.oauth2.credentials
+import googleapiclient.discovery
+import google_auth
+from setConfigure import set_secret
 
-for key, value in secrets.items():
-    setattr(sys.modules[__name__], key, value)
+set_secret(__name__)
+
+#
+
 
 conf_host = getattr(sys.modules[__name__], 'DB-HOST')
 conf_user = getattr(sys.modules[__name__], 'DB-USER')
@@ -22,6 +25,7 @@ conf_password = getattr(sys.modules[__name__], 'DB-PASSWORD')
 connection = MongoClient(conf_host,
                          username=conf_user,
                          password=conf_password,
+                         authSource="duck",
                          authMechanism='SCRAM-SHA-256')
 
 db = connection.duck
@@ -29,42 +33,21 @@ tool = db.tool
 posts = db.posts
 commentsCollections = db.comments
 
-# ______________________  DB 사용법 메모 _______________________
-# post = {"author": "Mike",
-#         "text": "My first blog post!",
-#         "tags": ["mongodb", "python", "pymongo"],
-#         "date": datetime.datetime.utcnow()}
-#
-# post_id = posts.insert_one(post).inserted_id
-#
-# pprint.pprint(tool.find_one())
-# pprint.pprint(post_id);
-#
-# pprint.pprint(posts.find_one({"_id": post_id}))
-#
-# new_posts = [{"author": "Mike",
-#               "text": "Another post!",
-#               "tags": ["bulk", "insert"],
-#               "date": datetime.datetime(2009, 11, 12, 11, 14)},
-#              {"author": "Eliot",
-#               "title": "MongoDB is fun",
-#               "text": "and pretty easy too!",
-#               "date": datetime.datetime(2009, 11, 10, 10, 45)}]
-# result = posts.insert_many(new_posts)
-# result.inserted_ids
-# ______________________  DB 사용법 메모 _______________________
-
-pprint.pprint(posts.count_documents({}))
-
-# app.secret_key = "secret key"
 app = Flask(__name__)
 api = Api(app)
 
+app.secret_key = getattr(sys.modules[__name__], 'FN_FLASK_SECRET_KEY')
+app.register_blueprint(google_auth.app)
 
-# 가장 간단한 예제
-@app.route("/")
-def hello():
-    return "nothing here"
+
+@app.route('/')
+def index():
+    if google_auth.is_logged_in():
+        user_info = google_auth.get_user_info()
+        return '<div>You are currently logged in as ' + user_info['given_name'] + '<div><pre>' + json.dumps(user_info,
+                                                                                                            indent=4) + "</pre>"
+
+    return 'You are not currently logged in.'
 
 
 parser = reqparse.RequestParser()
@@ -138,7 +121,6 @@ class Comment(Resource):
 
 
 # URL Router에 맵핑한다.(Rest URL정의)
-
 api.add_resource(TodoList, '/todos/')
 api.add_resource(Todo, '/todos/<string:todo_id>')
 
