@@ -6,11 +6,11 @@ from flask import Flask
 from pymongo import MongoClient
 from flask_restful import reqparse, abort, Api, Resource
 
-#
 from authlib.client import OAuth2Session
 import google.oauth2.credentials
 import googleapiclient.discovery
 import google_auth
+
 from setConfigure import set_secret
 
 set_secret(__name__)
