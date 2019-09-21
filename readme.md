@@ -20,10 +20,12 @@ pip3 install -r requirements.txt
 https://stackoverflow.com/questions/38134086/how-to-run-pylint-with-pycharm
 - 여기 첫번째 답변 기준으로 모든 프로젝트 파일을 검사하면서 관리.
 
-python3 -m venv venv
-which python3 
-/Users/mac/WebstormProjects/4WEEKS/DuckhooGosa-server/venv/bin/python3
 
-=> 이게 정상. 원래 파이선 설치 경로면 에러발생
+## 가상 환경 설정
+- python3 -m venv venv
 
-### controller, model, service 등은 다른 참고 자료등에서 보긴 했으나 아직 구조를 정하지 못해서 어떻게 관리할지 앞으로 정해야함.
+- which python3 
+
+- /Users/mac/WebstormProjects/4WEEKS/DuckhooGosa-server/venv/bin/python3
+
+=> 이렇게 떠야 정상. 원래 파이선 설치 경로면 에러발생
