@@ -2,8 +2,11 @@
 import sys
 import json
 import datetime
+import pprint
+from flask import request
 from flask import Flask
 from pymongo import MongoClient
+from bson.objectid import ObjectId
 from flask_restful import reqparse, abort, Api, Resource
 
 #
@@ -15,9 +18,7 @@ from setConfigure import set_secret
 
 set_secret(__name__)
 
-#
-
-
+# 환경변수 로드
 conf_host = getattr(sys.modules[__name__], 'DB-HOST')
 conf_user = getattr(sys.modules[__name__], 'DB-USER')
 conf_password = getattr(sys.modules[__name__], 'DB-PASSWORD')
@@ -27,11 +28,14 @@ connection = MongoClient(conf_host,
                          password=conf_password,
                          authSource="duck",
                          authMechanism='SCRAM-SHA-256')
-
 db = connection.duck
+
+# 테스트용 스키마
 tool = db.tool
 posts = db.posts
+# 실제 사용 스키마
 commentsCollections = db.comments
+problemsCollections = db.problems
 
 app = Flask(__name__)
 api = Api(app)
@@ -40,21 +44,23 @@ app.secret_key = getattr(sys.modules[__name__], 'FN_FLASK_SECRET_KEY')
 app.register_blueprint(google_auth.app)
 
 
+# 구글 연동용으로 카피해놓은 코드. 실제 프로젝트 무관
 @app.route('/')
 def index():
     if google_auth.is_logged_in():
         user_info = google_auth.get_user_info()
         return '<div>You are currently logged in as ' + user_info['given_name'] + '<div><pre>' + json.dumps(user_info,
                                                                                                             indent=4) + "</pre>"
-
     return 'You are not currently logged in.'
 
 
+# json 쪼개는 로직
 parser = reqparse.RequestParser()
 parser.add_argument('task')
 parser.add_argument('email')
 parser.add_argument('comment')
 parser.add_argument('problem_id')
+parser.add_argument('id')
 
 # ________________________참고 구현체 _______________________
 
@@ -104,7 +110,7 @@ class TodoList(Resource):
 class CommentList(Resource):
     def get(self, problem_id):
         result = commentsCollections.find_all({"problem_id": problem_id})
-        return TODOS
+        return result
 
 
 class Comment(Resource):
@@ -120,13 +126,62 @@ class Comment(Resource):
         return json.dumps(obj), 201
 
 
+# 이번 구현목표
+class ProblemGet(Resource):
+    def get(self, problem_id):
+        result = problemsCollections.find_one(ObjectId(problem_id))
+        result['_id'] = str(result['_id'])
+        return result, 201
+
+
+class Problem(Resource):
+    def post(self):
+        content = request.get_json()
+        result_id = problemsCollections.insert_one(content).inserted_id
+        obj = {"_id": str(result_id)}
+        return json.dumps(obj), 201
+
+
+class ProblemMain(Resource):
+    def GET(self):
+        return "good!"
+
+
+class ProblemSearch(Resource):
+    def GET(self):
+        return "good!"
+
+
+class ProblemSolution(Resource):
+    def POST(self):
+        return "good!"
+
+
+class ProblemEvalation(Resource):
+    def POST(self):
+        return "good!"
+
+
 # URL Router에 맵핑한다.(Rest URL정의)
 api.add_resource(TodoList, '/todos/')
 api.add_resource(Todo, '/todos/<string:todo_id>')
 
-# api.add_resource(Comments, '/Comments/<string:Comments_id>')
-api.add_resource(Comment, '/comments/')
-api.add_resource(CommentList, '/comments/<string:problem_id>')
+# comments _ POST
+api.add_resource(Comment, '/comment/')
+# comments _ GET
+api.add_resource(CommentList, '/comment/<string:problem_id>')
+
+# problem _ GET
+# api.add_resource(ProblemMain, '/problem/main')
+# api.add_resource(ProblemSearch, '/problem/search/<string:tag_word>')
+#
+# # problem _ POST
+# api.add_resource(ProblemSolution, '/problem/solution')
+# api.add_resource(ProblemEvalation, '/problem/evalation')
+
+# problem - GET, POST
+api.add_resource(ProblemGet, '/problem/<string:problem_id>')
+api.add_resource(Problem, '/problem/')
 
 # 서버 실행
 if __name__ == '__main__':
