@@ -29,7 +29,9 @@ def clear_image_qeuee():
 
         print(full_path[1:], "풀경로(S3로 쓸내용)")
         url = upload_file(path, full_path[1:])
-        print("changed URL upload completed", url)
+        if os.path.isfile(path):
+            os.remove(path)
+            print("파일 지움", path)
 
 
 def schedule_list():
