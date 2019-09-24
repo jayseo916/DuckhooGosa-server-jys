@@ -1,25 +1,41 @@
 import sys
-from boto.s3.connection import S3Connection
-from boto.s3.key import Key
+import os
+
+import boto3
+from botocore.exceptions import NoCredentialsError
+
+from requests import get  # to make GET request
+import ssl
+import pprint
 
 from setConfigure import set_secret
 
 set_secret(__name__)
-
+ssl._create_default_https_context = ssl._create_unverified_context
 AWS_ACCESS_KEY = getattr(sys.modules[__name__], 'AWS_ACCESS_KEY')
 AWS_AUTH_ACCESS_KEY = getattr(sys.modules[__name__], 'AWS_AUTH_ACCESS_KEY')
 
-conn = S3Connection(AWS_ACCESS_KEY, AWS_AUTH_ACCESS_KEY)
-bucket = conn.get_bucket('duckhoogosa')
+print("AWS connection init")
+
+s3 = boto3.client('s3', aws_access_key_id=AWS_ACCESS_KEY,
+                  aws_secret_access_key=AWS_AUTH_ACCESS_KEY)
 
 
-def uploadFile(filename, files):
-    k = Key(bucket)
-    k.key = filename
-    k.set_contents_from_string(files.read())
+def upload_file(local_file_path, target_key_name):
+    print(local_file_path, target_key_name, "좀!")
+    try:
+        s3.upload_file(local_file_path, 'duckhoogosa', target_key_name)
+        print("Upload Successful")
+        return True
+    except FileNotFoundError:
+        print("The file was not found")
+        return False
+    except NoCredentialsError:
+        print("Credentials not available")
+        return False
 
-    # 파일 공개
-    k.set_acl('public-read')
 
-    # 업로드 후 url 생성, 유효기간 설정
-    return k.generate_url(3600 * 24 * 7)
+def download(url, file_name):
+    with open(os.getcwd() + "/download/" + file_name, "wb") as file:  # open in binary mode
+        response = get(url)  # get request
+        file.write(response.content)  # write to file
