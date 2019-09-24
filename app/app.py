@@ -8,11 +8,16 @@ from flask import Flask
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 from flask_restful import reqparse, abort, Api, Resource
+from util import getFileNameFromLink
+from scheduleModule import imageScheduleQueue
 
-from authlib.client import OAuth2Session
-import google.oauth2.credentials
-import googleapiclient.discovery
-import google_auth
+import schedule
+import time
+
+# from authlib.client import OAuth2Session
+# import google.oauth2.credentials
+# import googleapiclient.discovery
+# import google_auth
 
 from setConfigure import set_secret
 
@@ -40,18 +45,18 @@ problemsCollections = db.problems
 app = Flask(__name__)
 api = Api(app)
 
-app.secret_key = getattr(sys.modules[__name__], 'FN_FLASK_SECRET_KEY')
-app.register_blueprint(google_auth.app)
+# app.secret_key = getattr(sys.modules[__name__], 'FN_FLASK_SECRET_KEY')
+# app.register_blueprint(google_auth.app)
 
 
 # 구글 연동용으로 카피해놓은 코드. 실제 프로젝트 무관
-@app.route('/')
-def index():
-    if google_auth.is_logged_in():
-        user_info = google_auth.get_user_info()
-        return '<div>You are currently logged in as ' + user_info['given_name'] + '<div><pre>' + json.dumps(user_info,
-                                                                                                            indent=4) + "</pre>"
-    return 'You are not currently logged in.'
+# @app.route('/')
+# def index():
+#     if google_auth.is_logged_in():
+#         user_info = google_auth.get_user_info()
+#         return '<div>You are currently logged in as ' + user_info['given_name'] + '<div><pre>' + json.dumps(user_info,
+#                                                                                                             indent=4) + "</pre>"
+#     return 'You are not currently logged in.'
 
 
 # json 쪼개는 로직
@@ -61,15 +66,14 @@ parser.add_argument('email')
 parser.add_argument('comment')
 parser.add_argument('problem_id')
 parser.add_argument('id')
+parser.add_argument('representImg')
+
+#
+def job():
+    print("Do Job...!!!")
+
 
 # ________________________참고 구현체 _______________________
-
-TODOS = {
-    'todo1': {'task': 'Make Money'},
-    'todo2': {'task': 'Play PS4'},
-    'todo3': {'task': 'Study!'},
-}
-
 
 def abort_if_todo_doesnt_exist(todo_id):
     if todo_id not in TODOS:
@@ -106,6 +110,10 @@ class TodoList(Resource):
 
 
 # __________________________________________________
+@app.route("/")
+def helloroute():
+    return "helloroute"
+
 
 class CommentList(Resource):
     def get(self, problem_id):
@@ -126,7 +134,6 @@ class Comment(Resource):
         return json.dumps(obj), 201
 
 
-# 이번 구현목표
 class ProblemGet(Resource):
     def get(self, problem_id):
         result = problemsCollections.find_one(ObjectId(problem_id))
@@ -136,6 +143,10 @@ class ProblemGet(Resource):
 
 class Problem(Resource):
     def post(self):
+        print("@@@@@@@@@POST PROBLEM@@@@@@@@@@")
+        args = parser.parse_args()
+        obj = {"link": args['representImg'], "filename": getFileNameFromLink(args['representImg'])}
+        imageScheduleQueue.append(obj)
         content = request.get_json()
         result_id = problemsCollections.insert_one(content).inserted_id
         obj = {"_id": str(result_id)}
@@ -186,3 +197,4 @@ api.add_resource(Problem, '/problem/')
 # 서버 실행
 if __name__ == '__main__':
     app.run(debug=True, port=8000)
+    print("앱켜짐")
