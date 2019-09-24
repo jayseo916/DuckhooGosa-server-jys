@@ -3,7 +3,7 @@ import schedule
 import os
 
 import time
-from aws_s3 import download, uploadFile
+from aws_s3 import download, upload_file
 from pixelate import make_img_pixel
 from collections import deque
 import pprint
@@ -28,7 +28,7 @@ def clear_image_qeuee():
                 full_path += "/" + v
 
         print(full_path[1:], "풀경로(S3로 쓸내용)")
-        url = uploadFile(path, full_path[1:])
+        url = upload_file(path, full_path[1:])
         print("changed URL upload completed", url)
 
 
