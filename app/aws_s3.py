@@ -33,8 +33,6 @@ def upload_file(local_file_path, target_key_name):
     except NoCredentialsError:
         print("Credentials not available")
         return False
-    if os.path.isfile(local_file_path):
-        os.remove(local_file_path)
 
 
 def download(url, file_name):
