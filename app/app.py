@@ -67,7 +67,7 @@ parser.add_argument('comment')
 parser.add_argument('problem_id')
 parser.add_argument('id')
 parser.add_argument('representImg')
-
+parser.add_argument('next_problem')
 #
 def job():
     print("Do Job...!!!")
@@ -112,7 +112,7 @@ class TodoList(Resource):
 # __________________________________________________
 @app.route("/")
 def helloroute():
-    return "helloroute"
+    return "hello"
 
 
 class CommentList(Resource):
@@ -154,8 +154,16 @@ class Problem(Resource):
 
 
 class ProblemMain(Resource):
-    def GET(self):
-        return "good!"
+    def post(self):
+        args = parser.parse_args()
+        sortedproblem = problemsCollections.find().sort('date', -1).\
+            limit(10 + int(args['next_problem'])).\
+            skip(int(args['next_problem']))
+        result = []
+        for v in sortedproblem:
+            v['_id'] = str(v['_id'])
+            result.append(v)
+        return json.dumps(result), 201
 
 
 class ProblemSearch(Resource):
@@ -183,7 +191,7 @@ api.add_resource(Comment, '/comment/')
 api.add_resource(CommentList, '/comment/<string:problem_id>')
 
 # problem _ GET
-# api.add_resource(ProblemMain, '/problem/main')
+api.add_resource(ProblemMain, '/problem/main')
 # api.add_resource(ProblemSearch, '/problem/search/<string:tag_word>')
 #
 # # problem _ POST
