@@ -3,7 +3,7 @@ import sys
 import json
 import datetime
 import pprint
-from flask import Flask, redirect, session, request
+from flask import Flask, session, request
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 from flask_restful import reqparse, abort, Api, Resource
@@ -56,10 +56,10 @@ logging.getLogger('flask_cors').level = logging.DEBUG
 
 
 # # 로그인할때 세션에 집어넣어음.
-# @app.route('/*', methods=['OPTION'])
-# def option():
-#     print("옵션 전체 도메인")
-#     return "GOOD"
+@app.route('/*', methods=['OPTION'])
+def option():
+    print("옵션 전체 도메인")
+    return "GOOD"
 
 
 def login_required():
@@ -72,7 +72,7 @@ def login_required():
                 return f(*args, **kwargs)
             else:
                 print("세션없음")
-                return redirect('http://localhost:3000/login')
+                return "NO SESSION ERROR"
 
         return __decorated_function
 
@@ -156,9 +156,10 @@ class Problem(Resource):
         obj = {"link": args['representImg'], "filename": getFileNameFromLink(args['representImg'])}
         imageScheduleQueue.append(obj)
         content = request.get_json()
+        pprint.pprint(content)
         result_id = problemsCollections.insert_one(content).inserted_id
         obj = {"_id": str(result_id)}
-        return json.dumps(obj), 201
+        return json.dumps(obj)
 
 
 class ProblemMain(Resource):
@@ -188,7 +189,7 @@ class ProblemEvalation(Resource):
 # URL Router에 맵핑한다.(Rest URL정의)
 
 # comments _ POST
-api.add_resource(Comment, '/comment/')
+api.add_resource(Comment, '/comment')
 # comments _ GET
 api.add_resource(CommentList, '/comment/<string:problem_id>')
 
@@ -202,7 +203,7 @@ api.add_resource(ProblemEvalation, '/problem/evalation')
 
 # problem - GET, POST
 api.add_resource(ProblemGet, '/problem/<string:problem_id>')
-api.add_resource(Problem, '/problem/')
+api.add_resource(Problem, '/problem')
 
 # 서버 실행
 if __name__ == '__main__':
