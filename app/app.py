@@ -179,7 +179,7 @@ class Comment(Resource):
             "day": datetime.datetime.utcnow()}
         result_id = commentsCollections.insert_one(comment).inserted_id
         obj = {"_id": str(result_id)}
-        return json.dumps(obj), 201
+        return json.dumps(obj)
 
 
 class ProblemGet(Resource):
@@ -187,7 +187,7 @@ class ProblemGet(Resource):
     def get(self, problem_id):
         result = problemsCollections.find_one(ObjectId(problem_id))
         result['_id'] = str(result['_id'])
-        return result, 201
+        return result
 
 
 class Problem(Resource):
