@@ -117,6 +117,7 @@ parser.add_argument('problem_id')
 parser.add_argument('id')
 parser.add_argument('representImg')
 parser.add_argument('next_problem')
+parser.add_argument('load_count')
 
 # ________________________참고 구현체 _______________________
 
@@ -202,18 +203,19 @@ class Problem(Resource):
         obj = {"_id": str(result_id)}
         return json.dumps(obj)
 
-
 class ProblemMain(Resource):
     def post(self):
         args = parser.parse_args()
-        sortedproblem = problemsCollections.find().sort('date', -1).\
-            limit(10 + int(args['next_problem'])).\
-            skip(int(args['next_problem']))
+        count = problemsCollections.count()
+        if count < int(args['next_problem']):
+            return json.dumps([])
+        sortedproblem = problemsCollections.find().sort('date', -1).skip(int(args['next_problem']))\
+            .limit(3)
         result = []
         for v in sortedproblem:
             v['_id'] = str(v['_id'])
             result.append(v)
-        return json.dumps(result), 201
+        return json.dumps(result)
 
     @login_required()
     def GET(self):
