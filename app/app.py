@@ -118,6 +118,7 @@ parser.add_argument('id')
 parser.add_argument('representImg')
 parser.add_argument('next_problem')
 
+
 # ________________________참고 구현체 _______________________
 
 
@@ -197,6 +198,13 @@ class Problem(Resource):
         obj = {"link": args['representImg'], "filename": getFileNameFromLink(args['representImg'])}
         imageScheduleQueue.append(obj)
         content = request.get_json()
+        content['ratingNumber'] = 0
+        content['tryCount'] = 0
+        content['okCount'] = 0
+        content['tags'] = ["테스트"]
+        for problem in content['problems']:
+            problem['tryCount'] = 0
+            problem['okCount'] = 0
         pprint.pprint(content)
         result_id = problemsCollections.insert_one(content).inserted_id
         obj = {"_id": str(result_id)}
@@ -206,8 +214,8 @@ class Problem(Resource):
 class ProblemMain(Resource):
     def post(self):
         args = parser.parse_args()
-        sortedproblem = problemsCollections.find().sort('date', -1).\
-            limit(10 + int(args['next_problem'])).\
+        sortedproblem = problemsCollections.find().sort('date', -1). \
+            limit(10 + int(args['next_problem'])). \
             skip(int(args['next_problem']))
         result = []
         for v in sortedproblem:
@@ -252,7 +260,6 @@ api.add_resource(ProblemSearch, '/problem/search/<string:tag_word>')
 # problem _ POST
 api.add_resource(ProblemSolution, '/problem/solution')
 api.add_resource(ProblemEvalation, '/problem/evalation')
-
 
 # problem - GET, POST
 api.add_resource(ProblemGet, '/problem/<string:problem_id>')
