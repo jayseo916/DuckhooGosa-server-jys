@@ -116,9 +116,50 @@ parser.add_argument('comment')
 parser.add_argument('problem_id')
 parser.add_argument('id')
 parser.add_argument('representImg')
-
+parser.add_argument('next_problem')
 
 # ________________________참고 구현체 _______________________
+
+
+def abort_if_todo_doesnt_exist(todo_id):
+    if todo_id not in TODOS:
+        abort(404, message="Todo {} doesn't exist".format(todo_id))
+
+
+class Todo(Resource):
+    def get(self, todo_id):
+        abort_if_todo_doesnt_exist(todo_id)
+        return TODOS[todo_id]
+
+    def delete(self, todo_id):
+        abort_if_todo_doesnt_exist(todo_id)
+        del TODOS[todo_id]
+        return '', 204
+
+    def put(self, todo_id):
+        args = parser.parse_args()
+        task = {'task': args['task']}
+        TODOS[todo_id] = task
+        return task, 201
+
+
+class TodoList(Resource):
+    def get(self):
+        pprint.pprint(TODOS)
+        return TODOS
+
+    def post(self):
+        args = parser.parse_args()
+        todo_id = 'todo%d' % (len(TODOS) + 1)
+        TODOS[todo_id] = {'task': args['task']}
+        return TODOS[todo_id], 201
+
+
+# __________________________________________________
+@app.route("/")
+def helloroute():
+    return "hello"
+
 
 class CommentList(Resource):
     @login_required()
@@ -163,6 +204,17 @@ class Problem(Resource):
 
 
 class ProblemMain(Resource):
+    def post(self):
+        args = parser.parse_args()
+        sortedproblem = problemsCollections.find().sort('date', -1).\
+            limit(10 + int(args['next_problem'])).\
+            skip(int(args['next_problem']))
+        result = []
+        for v in sortedproblem:
+            v['_id'] = str(v['_id'])
+            result.append(v)
+        return json.dumps(result), 201
+
     @login_required()
     def GET(self):
         return "good!"
@@ -200,6 +252,7 @@ api.add_resource(ProblemSearch, '/problem/search/<string:tag_word>')
 # problem _ POST
 api.add_resource(ProblemSolution, '/problem/solution')
 api.add_resource(ProblemEvalation, '/problem/evalation')
+
 
 # problem - GET, POST
 api.add_resource(ProblemGet, '/problem/<string:problem_id>')
