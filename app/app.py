@@ -45,6 +45,7 @@ posts = db.posts
 # 실제 사용 스키마
 commentsCollections = db.comments
 problemsCollections = db.problems
+usersCollections = db.users
 
 app = Flask(__name__)
 app.config['TESTING'] = False
@@ -67,12 +68,12 @@ def login_required():
         @wraps(f)
         def __decorated_function(*args, **kwargs):
             print(session, "세션 체크")
-            if 'logged_in' in session:
-                print("로그인 통과")
-                return f(*args, **kwargs)
-            else:
-                print("세션없음")
-                return "NO SESSION ERROR"
+            # if 'logged_in' in session:
+            print("로그인 통과, 현재 무조건 통과시키는 상태")
+            return f(*args, **kwargs)
+            # else:
+            #     print("세션없음")
+            #     return "NO SESSION ERROR"
 
         return __decorated_function
 
@@ -121,44 +122,7 @@ parser.add_argument('load_count')
 parser.add_argument('word')
 parser.add_argument('genre')
 
-# ________________________참고 구현체 _______________________
 
-
-def abort_if_todo_doesnt_exist(todo_id):
-    if todo_id not in TODOS:
-        abort(404, message="Todo {} doesn't exist".format(todo_id))
-
-
-class Todo(Resource):
-    def get(self, todo_id):
-        abort_if_todo_doesnt_exist(todo_id)
-        return TODOS[todo_id]
-
-    def delete(self, todo_id):
-        abort_if_todo_doesnt_exist(todo_id)
-        del TODOS[todo_id]
-        return '', 204
-
-    def put(self, todo_id):
-        args = parser.parse_args()
-        task = {'task': args['task']}
-        TODOS[todo_id] = task
-        return task, 201
-
-
-class TodoList(Resource):
-    def get(self):
-        pprint.pprint(TODOS)
-        return TODOS
-
-    def post(self):
-        args = parser.parse_args()
-        todo_id = 'todo%d' % (len(TODOS) + 1)
-        TODOS[todo_id] = {'task': args['task']}
-        return TODOS[todo_id], 201
-
-
-# __________________________________________________
 @app.route("/")
 def helloroute():
     return "hello"
@@ -200,6 +164,14 @@ class Problem(Resource):
         obj = {"link": args['representImg'], "filename": getFileNameFromLink(args['representImg'])}
         imageScheduleQueue.append(obj)
         content = request.get_json()
+        content['nickName'] = "아무개 G"
+        content['ratingNumber'] = 0
+        content['tryCount'] = 0
+        content['okCount'] = 0
+        content['tags'] = ["테스트"]
+        for problem in content['problems']:
+            problem['tryCount'] = 0
+            problem['okCount'] = 0
         pprint.pprint(content)
         result_id = problemsCollections.insert_one(content).inserted_id
         obj = {"_id": str(result_id)}
@@ -220,8 +192,9 @@ class ProblemMain(Resource):
         return json.dumps(result)
 
     @login_required()
-    def GET(self):
+    def get(self):
         return "good!"
+
 
 
 class ProblemSearch(Resource):     #제목 OR 검색
@@ -325,15 +298,107 @@ class ProblemGenre(Resource):     #장르검색
 #         return json.dumps(result)
 
 
+
 class ProblemSolution(Resource):
     @login_required()
-    def POST(self):
-        return "good!"
+    def post(self):
+        content = request.get_json()
+        original = problemsCollections.find_one(ObjectId(content['problem_id']))
+        original_answers = [];
+        for problem in original['problems']:
+            print(problem,'프로블램')
+            arr = [];
+            if 'subjectAnswer' in problem:
+                print(problem['subjectAnswer'], "주관식 답 집어넣음")
+                original_answers.append(problem['subjectAnswer'])
+                continue
+
+            for index, choice in enumerate(problem['choice']):
+                print(choice[0],"?왜 딕셔너리가 아닌가?")
+                if choice[0]['answer'] == 'true':
+                    print(index, "객관식 답 넣음")
+                    arr.append(index)
+            original_answers.append(arr)
+
+        print("완성된 답변 리스트", original_answers)
+        try_count = len(original_answers)
+        right_count = 0
+
+        for i, answer in enumerate(content["answer"]):
+            print(answer, original_answers, "정답매기기 단계")
+            if answer == original_answers[i]:
+                right_count = right_count + 1
+                print('맞춘코스', right_count, try_count, answer, original_answers[i])
+                problemsCollections.update_one({"_id": ObjectId(content['problem_id'])},
+                                               {'$inc': {"problems." + str(i) + ".okCount": 1,
+                                                         "problems." + str(i) + ".tryCount": 1}})
+            else:
+                print('틀린코스', right_count, try_count, answer, original_answers[i])
+                problemsCollections.update_one({"_id": ObjectId(content['problem_id'])}, {'$inc':
+                                                                                              {"problems." + str(
+                                                                                                  i) + ".tryCount": 1}})
+
+        problemsCollections.update_one({"_id": ObjectId(content['problem_id'])},
+                                       {'$inc': {"okCount": right_count, "tryCount": try_count}})
+
+        original = problemsCollections.find_one(ObjectId(content['problem_id']))
+        response_obj = {"_id": content['problem_id'],
+                        "okCount": right_count,
+                        "tryCount": len(content['answer']),
+                        "commentCount": commentsCollections.count_documents({"problem_id": content['problem_id']}),
+                        "totalProblem": original['tryCount'],
+                        "totalOkProblem": original['okCount'],
+                        "checkProblem": original['problems']
+                        }
+        solution_obj = {
+            "problem_id": content['problem_id'],
+            "solved_date": content['date'],
+            "answer": content['answer'],
+            "accuracy": round((right_count / try_count) * 100, 2)
+        }
+        user_obj = {
+            "email": content['email'],
+            "nickname": None,
+            "img": None,
+            "tier": None,
+            "answerCount": 0,
+            "totalProblemCount": 0,
+            "solution": []
+        }
+
+        user_check_result = usersCollections.find_one({"email": content['email']})
+        print(user_check_result)
+        if user_check_result is None:
+            usersCollections.insert_one(user_obj)
+            result = usersCollections.update_one({"email": content['email']},
+                                                 {"$push": {"solution": solution_obj}})
+            pprint.pprint(result)
+            print("결과1")
+        else:
+            print(solution_obj, '발작적 솔루션 제출')
+            result = usersCollections.update_one({"email": content['email']},
+                                                 {'$push': {'solution': solution_obj}})
+            pprint.pprint(result)
+            print("결과2")
+
+        return json.dumps(response_obj)
+
+
+# 값판정해서 클라이언트내려주기
+# 사용자콜렉션에 반영해주기
+# 문제메타 정보 업데이트하기
+
+# okCount: this.state.resultData.okCount,
+# tryCount: this.state.resultData.tryCount,
+# commentCount: this.state.resultData.commentCount,
+# problemId: this.state.resultData.problemId,
+# checkProblem: this.state.resultData.checkProblem,
+# totalProblem: this.state.resultData.totalProblem
 
 
 class ProblemEvalation(Resource):
     @login_required()
-    def POST(self):
+    def post(self):
         return "good!"
 
 
@@ -352,7 +417,6 @@ api.add_resource(ProblemGenre, '/problem/genre')
 # problem _ POST
 api.add_resource(ProblemSolution, '/problem/solution')
 api.add_resource(ProblemEvalation, '/problem/evalation')
-
 
 # problem - GET, POST
 api.add_resource(ProblemGet, '/problem/<string:problem_id>')
