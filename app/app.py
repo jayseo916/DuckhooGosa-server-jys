@@ -9,18 +9,11 @@ from bson.objectid import ObjectId
 from flask_restful import reqparse, abort, Api, Resource
 from util import getFileNameFromLink
 from scheduleModule import imageScheduleQueue
-from oauth2client.contrib.flask_util import UserOAuth2
 from requests import get
 from functools import wraps
 from flask_cors import CORS, cross_origin
 import logging
 
-import schedule
-import time
-
-# import google.oauth2.credentials
-# import googleapiclient.discovery
-# import google_auth
 
 from setConfigure import set_secret
 
@@ -45,6 +38,7 @@ posts = db.posts
 # 실제 사용 스키마
 commentsCollections = db.comments
 problemsCollections = db.problems
+usersCollections = db.users
 
 app = Flask(__name__)
 app.config['TESTING'] = False
@@ -118,6 +112,7 @@ parser.add_argument('id')
 parser.add_argument('representImg')
 parser.add_argument('next_problem')
 parser.add_argument('load_count')
+
 
 # ________________________참고 구현체 _______________________
 
@@ -203,13 +198,14 @@ class Problem(Resource):
         obj = {"_id": str(result_id)}
         return json.dumps(obj)
 
+
 class ProblemMain(Resource):
     def post(self):
         args = parser.parse_args()
         count = problemsCollections.count()
         if count < int(args['next_problem']):
             return json.dumps([])
-        sortedproblem = problemsCollections.find().sort('date', -1).skip(int(args['next_problem']))\
+        sortedproblem = problemsCollections.find().sort('date', -1).skip(int(args['next_problem'])) \
             .limit(3)
         result = []
         for v in sortedproblem:
@@ -234,10 +230,39 @@ class ProblemSolution(Resource):
         return "good!"
 
 
-class ProblemEvalation(Resource):
+class ProblemEva: wqlation(Resource):
+
+
+@login_required()
+def POST(self):
+    return "good!"
+
+
+class Account(Resource):
     @login_required()
-    def POST(self):
-        return "good!"
+    def get(self):
+        user = usersCollections.find_one({email: session['email']})
+        problems = problemsCollections.find({email: session['email']})
+        new_problems = [];
+        for problem in problems:
+            problem['img'] = problem.pop('representImg')
+            new_problems.append(problem)
+        user['problems']=new_problems
+
+        new_solutions = [];
+        for problem in user.solution:
+            problem['successRate']= problem.pop('accuracy')
+
+
+        pm.expect(jsonData).to.have.property('solutions')
+
+        pm.expect(jsonData.solutions[0]).to.have.property('successRate')
+        pm.expect(jsonData.solutions[0]).to.have.property('title')
+        pm.expect(jsonData.solutions[0]).to.have.property('date')
+        pm.expect(jsonData.solutions[0]).to.have.property('img')
+        pm.expect(jsonData.solutions[0]).to.have.property('problem_id')
+
+        return user
 
 
 # URL Router에 맵핑한다.(Rest URL정의)
@@ -255,10 +280,12 @@ api.add_resource(ProblemSearch, '/problem/search/<string:tag_word>')
 api.add_resource(ProblemSolution, '/problem/solution')
 api.add_resource(ProblemEvalation, '/problem/evalation')
 
-
 # problem - GET, POST
 api.add_resource(ProblemGet, '/problem/<string:problem_id>')
 api.add_resource(Problem, '/problem')
+
+# account - GET, POST
+api.add_resource(Account, '/account/info')
 
 # 서버 실행
 if __name__ == '__main__':
