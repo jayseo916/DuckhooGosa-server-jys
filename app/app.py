@@ -240,12 +240,14 @@ class ProblemSolution(Resource):
         problemsCollections.update_one({"_id": ObjectId(content['problem_id'])},
                                        {'$inc': {"okCount": right_count, "tryCount": try_count}})
 
+        original = problemsCollections.find_one(ObjectId(content['problem_id']))
         response_obj = {"_id": content['problem_id'],
                         "okCount": right_count,
                         "tryCount": len(content['answer']),
                         "commentCount": commentsCollections.count_documents({"problem_id": content['problem_id']}),
                         "totalProblem": original['tryCount'],
-                        "checkProblem": original['okCount']
+                        "totalOkProblem": original['okCount'],
+                        "checkProblem": original['problems']
                         }
         solution_obj = {
             "problem_id": content['problem_id'],
