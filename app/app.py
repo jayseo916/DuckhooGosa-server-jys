@@ -119,6 +119,7 @@ parser.add_argument('representImg')
 parser.add_argument('next_problem')
 parser.add_argument('load_count')
 parser.add_argument('word')
+parser.add_argument('genre')
 
 # ________________________참고 구현체 _______________________
 
@@ -211,7 +212,7 @@ class ProblemMain(Resource):
         if count < int(args['next_problem']):
             return json.dumps([])
         sortedproblem = problemsCollections.find().sort('date', -1).skip(int(args['next_problem']))\
-            .limit(4)
+            .limit(5)
         result = []
         for v in sortedproblem:
             v['_id'] = str(v['_id'])
@@ -227,18 +228,43 @@ class ProblemSearch(Resource):     #제목 OR 검색
     # @login_required()
     def post(self):
         args = parser.parse_args()
+        problemsCollections.drop_index('*')
         count = problemsCollections.count()
         word = args['word']
         if count < int(args['next_problem']):
             return json.dumps([])
         problemsCollections.create_index([('title', 'text')])
         sortedproblem = problemsCollections.find({"$text": {"$search": word}}).sort('date', -1).skip(int(args['next_problem'])) \
-            .limit(4)
+            .limit(5)
         result = []
         for v in sortedproblem:
             v['_id'] = str(v['_id'])
             result.append(v)
         return json.dumps(result)
+
+class ProblemGenre(Resource):     #장르검색
+    # @login_required()
+    def post(self):
+        args = parser.parse_args()
+        problemsCollections.drop_index('*')
+        count = problemsCollections.count()
+        word = args['genre']
+        print('인덱스', problemsCollections.index_information())
+        print(word)
+        print(type(word))
+        if count < int(args['next_problem']):
+            return json.dumps([])
+        problemsCollections.create_index([('genre', 'text')])
+        sortedproblem = problemsCollections.find({"$text": {"$search": word}}).sort('date', -1).skip(int(args['next_problem'])) \
+            .limit(5)
+        result = []
+        for v in sortedproblem:
+            v['_id'] = str(v['_id'])
+            result.append(v)
+
+        return json.dumps(result)
+
+
 
 
 
@@ -321,6 +347,7 @@ api.add_resource(CommentList, '/comment/<string:problem_id>')
 # problem _ POST
 api.add_resource(ProblemMain, '/problem/main')
 api.add_resource(ProblemSearch, '/problem/search')
+api.add_resource(ProblemGenre, '/problem/genre')
 
 # problem _ POST
 api.add_resource(ProblemSolution, '/problem/solution')
