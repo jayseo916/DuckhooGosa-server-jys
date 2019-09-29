@@ -45,6 +45,7 @@ posts = db.posts
 # 실제 사용 스키마
 commentsCollections = db.comments
 problemsCollections = db.problems
+ratingsColeections = db.ratings
 usersCollections = db.users
 
 app = Flask(__name__)
@@ -399,6 +400,22 @@ class ProblemSolution(Resource):
 class ProblemEvalation(Resource):
     @login_required()
     def post(self):
+        evaluation = request.get_json()
+        print('평가', evaluation)
+        rating = {
+            "problem_id": evaluation['_id'],
+            "quality": evaluation['evalQ'],
+            "dificulty": evaluation['evalD'],
+            "email": evaluation['email']
+        }
+        comment = {
+            "problem_id": evaluation['_id'],
+            "email": evaluation['email'],
+            "comment": evaluation['comments'],
+            "day": datetime.datetime.utcnow()
+        }
+        commentsCollections.insert_one(comment)
+        ratingsColeections.insert_one(rating)
         return "good!"
 
 
@@ -416,7 +433,7 @@ api.add_resource(ProblemGenre, '/problem/genre')
 
 # problem _ POST
 api.add_resource(ProblemSolution, '/problem/solution')
-api.add_resource(ProblemEvalation, '/problem/evalation')
+api.add_resource(ProblemEvalation, '/problem/evaluation')
 
 # problem - GET, POST
 api.add_resource(ProblemGet, '/problem/<string:problem_id>')
