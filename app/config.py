@@ -16,10 +16,10 @@ class TestConfig(Base):
     DEBUG = True
     TESTING = True
     DATABASE_NAME = 'ducktestdb'
-    CLIENT_HOST = ''
+    CLIENT_HOST = 'http://duckhoo.site'
 
 
 class ProductionConfig(Base):
     DEBUG = False
     DATABASE_NAME = 'duckproductiondb'
-    CLIENT_HOST = ''
+    CLIENT_HOST = 'http://duckhoo.site'

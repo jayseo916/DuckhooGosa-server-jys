@@ -330,11 +330,12 @@ class ProblemSolution(Resource):
     @login_required()
     def post(self):
         content = request.get_json()
+        print(content, "__제출된 답__")
         original = problemsCollections.find_one(ObjectId(content['problem_id']))
         original_answers = []
         for problem in original['problems']:
             arr = [];
-            if problem['subjectAnswer'] is not False:
+            if problem['subjectAnswer'] is not False and len(problem['choice']) == 1:
                 original_answers.append(problem['subjectAnswer'])
                 continue
 
@@ -342,13 +343,14 @@ class ProblemSolution(Resource):
                 if choice['answer']:
                     arr.append(index)
             original_answers.append(arr)
+        print(original_answers, "__ 진짜 답 __")
 
         try_count = len(original_answers)
         right_count = 0
         check_problem = []
         temp_obj = {}
         for i, answer in enumerate(content["answer"]):
-            # print(answer == original_answers[i], "정답 비교 <>")
+            print(answer == original_answers[i], "정답 비교 <>")
             if answer == original_answers[i]:
                 right_count = right_count + 1
                 problemsCollections.update_one({"_id": ObjectId(content['problem_id'])},
