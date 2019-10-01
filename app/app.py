@@ -49,7 +49,7 @@ api = Api(app)
 # logging
 logging.getLogger('flask_cors').level = logging.DEBUG
 
-print("This APP use", app.config['DATABASE_NAME'], "r u sure?")
+print("This APP use __________________ ", app.config['DATABASE_NAME'], "______________ Are you sure?")
 
 connection = MongoClient(conf_host,
                          username=conf_user,
@@ -61,6 +61,7 @@ db = connection[app.config['DATABASE_NAME']]
 # 테스트용 스키마
 tool = db.tool
 posts = db.posts
+
 # 실제 사용 스키마
 commentsCollections = db.comments
 problemsCollections = db.problems
@@ -79,13 +80,12 @@ def login_required():
     def _decorated_function(f):
         @wraps(f)
         def __decorated_function(*args, **kwargs):
-            print(session, "세션 체크")
-            # if 'logged_in' in session:
-            print("로그인 통과, 현재 무조건 통과시키는 상태")
-            return f(*args, **kwargs)
-            # else:
-            #     print("세션없음")
-            #     return "NO SESSION ERROR"
+            if 'logged_in' in session:
+                print("🍎", session['email'], "님 세션 통과")
+                return f(*args, **kwargs)
+            else:
+                print("✂️ ___세션없음___")
+                return "NO SESSION ERROR"
 
         return __decorated_function
 
@@ -101,10 +101,8 @@ def Login():
             email = data['email']
             session['logged_in'] = True
             session['email'] = email
-            print("로그인 세션입력됨", session)
             result = usersCollections.find_one({"email": email})
             if result is None:
-                print(email, "유저없음")
                 user = {
                     "email": email,
                     "nickname": None,
@@ -115,7 +113,7 @@ def Login():
                     "solution": []
                 }
                 usersCollections.insert_one(user)
-                print(email, "유저생성")
+                print("🎉", email, " 유저생성완료")
 
             return {'result': True}
         else:
@@ -336,13 +334,12 @@ class ProblemSolution(Resource):
         original_answers = []
         for problem in original['problems']:
             arr = [];
-            if ('subjectAnswer' in problem) and (problem['subjectAnswer'] != True) and (
-                    problem['subjectAnswer'] != False):
+            if problem['subjectAnswer'] is not False:
                 original_answers.append(problem['subjectAnswer'])
                 continue
 
             for index, choice in enumerate(problem['choice']):
-                if choice['answer'] == 'true':
+                if choice['answer']:
                     arr.append(index)
             original_answers.append(arr)
 
@@ -351,10 +348,9 @@ class ProblemSolution(Resource):
         check_problem = []
         temp_obj = {}
         for i, answer in enumerate(content["answer"]):
-            print(answer == original_answers[i], "정답 비교 <>")
+            # print(answer == original_answers[i], "정답 비교 <>")
             if answer == original_answers[i]:
                 right_count = right_count + 1
-                print('정')
                 problemsCollections.update_one({"_id": ObjectId(content['problem_id'])},
                                                {'$inc': {"problems." + str(i) + ".okCount": 1,
                                                          "problems." + str(i) + ".tryCount": 1}})
@@ -383,7 +379,7 @@ class ProblemSolution(Resource):
             "all_okCount": original['okCount'],
             "all_tryCount": original['tryCount'],
         }
-        print(content, "이거 데이터 검증")
+        # print(content, "이거 데이터 검증")
 
         solution_obj = {
             "problem_id": content['problem_id'],
@@ -405,7 +401,7 @@ class ProblemEvalation(Resource):
     @login_required()
     def post(self):
         evaluation = request.get_json()
-        print('평가', evaluation)
+        # print('평가', evaluation)
         rating = {
             "problem_id": evaluation['_id'],
             "quality": evaluation['evalQ'],
@@ -441,9 +437,7 @@ class Account(Resource):
             new_solutions.append(solution)
 
         user["solution"] = new_solutions
-        print(len(user["problems"]), '내려간다')
         user['_id'] = str(user['_id'])
-        print(user['_id'], "진짜")
         return user
 
 
@@ -474,4 +468,4 @@ api.add_resource(Account, '/account/info')
 if __name__ == '__main__':
     app.secret_key = getattr(sys.modules[__name__], 'FN_FLASK_SECRET_KEY')
     app.run(port=8000)
-    print("앱켜짐")
+    print("🍨__APP START__")
