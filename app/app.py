@@ -193,7 +193,7 @@ class ProblemMain(Resource):
     def post(self):
         args = parser.parse_args()
         count = problemsCollections.count()
-        if count < int(args['next_problem']):
+        if count <= int(args['next_problem']):
             return json.dumps('NoData')
         sortedproblem = problemsCollections.find().sort('date', -1).skip(int(args['next_problem'])) \
             .limit(5)
@@ -217,7 +217,7 @@ class ProblemSearch(Resource):  # 제목 OR 검색
         problemsCollections.drop_index('*')
         count = problemsCollections.count()
         word = args['word']
-        if count < int(args['next_problem']):
+        if count <= int(args['next_problem']):
             return json.dumps('NoData')
         problemsCollections.create_index([('title', 'text')])
         sortedproblem = problemsCollections.find({"$text": {"$search": word}}).sort('date', -1).skip(
@@ -239,7 +239,7 @@ class ProblemGenre(Resource):  # 장르검색
         problemsCollections.drop_index('*')
         count = problemsCollections.count()
         word = args['genre']
-        if count < int(args['next_problem']):
+        if count <= int(args['next_problem']):
             return json.dumps('NoData')
         problemsCollections.create_index([('genre', 'text')])
         sortedproblem = problemsCollections.find({"$text": {"$search": word}}).sort('date', -1).skip(
