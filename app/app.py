@@ -30,13 +30,16 @@ conf_user = getattr(sys.modules[__name__], 'DB-USER')
 conf_password = getattr(sys.modules[__name__], 'DB-PASSWORD')
 
 # 환경변수 로드 (from config.py)
-env = sys.argv[1] if len(sys.argv) > 2 else 'dev'
+env = sys.argv[1] if len(sys.argv) >= 2 else 'dev'
 app.config.from_object(config.Base)
 if env == 'dev':
+    print("DEV!!!!!!!!!!!!")
     app.config.from_object(config.DevelopmentConfig)
 elif env == 'test':
+    print("TEST!!!!!!!!!!!!")
     app.config.from_object(config.TestConfig)
 elif env == 'prod':
+    print("PRODUCTION!!!!!!!!!!!!")
     app.config.from_object(config.ProductionConfig)
 else:
     raise ValueError('Invalid environment name')
@@ -469,5 +472,6 @@ api.add_resource(Account, '/account/info')
 # 서버 실행
 if __name__ == '__main__':
     app.secret_key = getattr(sys.modules[__name__], 'FN_FLASK_SECRET_KEY')
-    app.run(port=8000)
+    print(app.config)
+    app.run(port=app.config['PORT'], host=app.config['SERVER_HOST'])
     print("🍨__APP START__")
