@@ -428,6 +428,15 @@ class Account(Resource):
         print(user['_id'], "진짜")
         return user
 
+class AccountNick(Resource):
+    @login_required()
+    def post(self):
+        evaluation = request.get_json()
+        nick = evaluation['nick']
+        usersCollections.update_one({'email': session['email']},
+                                       {'$set': {"nickname": nick }})
+        return 'ok'
+
 
 # URL Router에 맵핑한다.(Rest URL정의)
 
@@ -451,6 +460,7 @@ api.add_resource(Problem, '/problem')
 
 # account - GET, POST
 api.add_resource(Account, '/account/info')
+api.add_resource(AccountNick, '/account/nick')
 
 # 서버 실행
 if __name__ == '__main__':
