@@ -1,6 +1,8 @@
 # SECRET INFORMATION FOR PROJECT DONT PUSH GITHUB
 app/secrets.json
+app/secret.json
 secret.json
+secrets.json
 
 # Created by https://www.gitignore.io/api/macos,python,django
 # Edit at https://www.gitignore.io/?templates=macos,python,django
@@ -13,6 +15,9 @@ __pycache__/
 local_settings.py
 db.sqlite3
 media
+
+env/
+venv/
 
 # If your build process includes running collectstatic, then you probably don't need or want to include staticfiles/
 # in your Git repository. Update and uncomment the following line accordingly.

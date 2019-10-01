@@ -2,13 +2,15 @@
 
 ### 앱실행
 1) source /venv/bin/activate
-2) python3 /app/app.py
+2) python3 /app/app.py [dev]        [옵션 없거나 dev면 dev]
+3) python3 /app/app.py production   [서버실행]
+3) python3 /app/app.py test         [테스트서버실행]
 
 ### 패키지 설치 후엔 패키지를 추가.
-- pip freeze > requirements.txt
+pip3 freeze > requirements.txt
 
 ### pull upstream 후에는 패키지를 설치.
-- pip install -r requirements.txt
+pip3 install -r requirements.txt
 
 ### 파일 구성
 - model.py 기존에 작성했던 ORM 흔적
@@ -18,6 +20,17 @@
 
 ## pylint 설정
 https://stackoverflow.com/questions/38134086/how-to-run-pylint-with-pycharm
-- 여기 첫번째 답변 기준으로 모든 프로젝트 파일을 검사하면서 관리. 
+- 여기 첫번째 답변 기준으로 모든 프로젝트 파일을 검사하면서 관리.
 
-### controller, model, service 등은 다른 참고 자료등에서 보긴 했으나 아직 구조를 정하지 못해서 어떻게 관리할지 앞으로 정해야함.
+
+## 가상 환경 설정
+- pip install venv
+- python3 -m venv venv
+- which python3 
+- source venv/bin/activate
+- /Users/mac/WebstormProjects/4WEEKS/DuckhooGosa-server/venv/bin/python3
+
+=> 이렇게 떠야 정상. 원래 파이선 설치 경로면 에러발생
+
+## 디버깅.
+- 셋팅 다되어있는데 CORS나면 그냥 잘못된 라우팅 또는 로직이 터져서 그냥 응답이 안간거다. 
