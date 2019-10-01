@@ -8,6 +8,8 @@ class Base(object):
 class DevelopmentConfig(Base):
     DEBUG = True
     TESTING = True
+    PORT = 8000
+    SERVER_HOST = '127.0.0.1'
     DATABASE_NAME = 'duckdevdb'
     CLIENT_HOST = 'http://localhost:3000'
 
@@ -15,11 +17,15 @@ class DevelopmentConfig(Base):
 class TestConfig(Base):
     DEBUG = True
     TESTING = True
+    PORT = 7999
+    SERVER_HOST = 'ec2-54-180-82-249.ap-northeast-2.compute.amazonaws.com'
     DATABASE_NAME = 'ducktestdb'
-    CLIENT_HOST = ''
+    CLIENT_HOST = 'https://duckhoo.site'
 
 
 class ProductionConfig(Base):
-    DEBUG = False
+    DEBUG = True
+    PORT = 8000
+    SERVER_HOST = 'ec2-54-180-82-249.ap-northeast-2.compute.amazonaws.com'
     DATABASE_NAME = 'duckproductiondb'
-    CLIENT_HOST = ''
+    CLIENT_HOST = 'https://duckhoo.site'
