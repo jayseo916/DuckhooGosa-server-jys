@@ -194,14 +194,15 @@ class ProblemMain(Resource):
         args = parser.parse_args()
         count = problemsCollections.count()
         if count < int(args['next_problem']):
-            return json.dumps([])
-
+            return json.dumps('NoData')
         sortedproblem = problemsCollections.find().sort('date', -1).skip(int(args['next_problem'])) \
             .limit(5)
         result = []
         for v in sortedproblem:
             v['_id'] = str(v['_id'])
             result.append(v)
+        if len(result) is 0:
+            return json.dumps('NoData')
         return json.dumps(result)
 
     @login_required()
@@ -217,7 +218,7 @@ class ProblemSearch(Resource):  # 제목 OR 검색
         count = problemsCollections.count()
         word = args['word']
         if count < int(args['next_problem']):
-            return json.dumps([])
+            return json.dumps('NoData')
         problemsCollections.create_index([('title', 'text')])
         sortedproblem = problemsCollections.find({"$text": {"$search": word}}).sort('date', -1).skip(
             int(args['next_problem'])) \
@@ -226,6 +227,8 @@ class ProblemSearch(Resource):  # 제목 OR 검색
         for v in sortedproblem:
             v['_id'] = str(v['_id'])
             result.append(v)
+        if len(result) is 0:
+            return json.dumps('NoData')
         return json.dumps(result)
 
 
@@ -236,11 +239,8 @@ class ProblemGenre(Resource):  # 장르검색
         problemsCollections.drop_index('*')
         count = problemsCollections.count()
         word = args['genre']
-        print('인덱스', problemsCollections.index_information())
-        print(word)
-        print(type(word))
         if count < int(args['next_problem']):
-            return json.dumps([])
+            return json.dumps('NoData')
         problemsCollections.create_index([('genre', 'text')])
         sortedproblem = problemsCollections.find({"$text": {"$search": word}}).sort('date', -1).skip(
             int(args['next_problem'])) \
@@ -249,7 +249,8 @@ class ProblemGenre(Resource):  # 장르검색
         for v in sortedproblem:
             v['_id'] = str(v['_id'])
             result.append(v)
-
+        if len(result) is 0:
+            return json.dumps('NoData')
         return json.dumps(result)
 
 
