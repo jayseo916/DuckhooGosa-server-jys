@@ -14,23 +14,49 @@ from requests import get
 from functools import wraps
 from flask_cors import CORS, cross_origin
 import logging
+import sys
+import config
 
 from setConfigure import set_secret
 
+# 앱선언
+app = Flask(__name__)
+
 set_secret(__name__)
 
-# 환경변수 로드
+# 환경변수 로드 (from secret.json)
 conf_host = getattr(sys.modules[__name__], 'DB-HOST')
 conf_user = getattr(sys.modules[__name__], 'DB-USER')
 conf_password = getattr(sys.modules[__name__], 'DB-PASSWORD')
 
+# 환경변수 로드 (from config.py)
+env = sys.argv[1] if len(sys.argv) > 2 else 'dev'
+app.config.from_object(config.Base)
+if env == 'dev':
+    app.config.from_object(config.DevelopmentConfig)
+elif env == 'test':
+    app.config.from_object(config.TestConfig)
+elif env == 'prod':
+    app.config.from_object(config.ProductionConfig)
+else:
+    raise ValueError('Invalid environment name')
+
+# flask CORS
+cors = CORS(app, origins=[app.config['CLIENT_HOST']], headers=['Content-Type'],
+            expose_headers=['Access-Control-Allow-Origin'], supports_credentials=True)
+# flask REST-api
+api = Api(app)
+# logging
+logging.getLogger('flask_cors').level = logging.DEBUG
+
+print("This APP use", app.config['DATABASE_NAME'], "r u sure?")
+
 connection = MongoClient(conf_host,
                          username=conf_user,
                          password=conf_password,
-                         authSource="duck",
+                         authSource='duck',
                          authMechanism='SCRAM-SHA-256')
-
-db = connection.duck
+db = connection[app.config['DATABASE_NAME']]
 
 # 테스트용 스키마
 tool = db.tool
@@ -40,14 +66,6 @@ commentsCollections = db.comments
 problemsCollections = db.problems
 ratingsColeections = db.ratings
 usersCollections = db.users
-
-app = Flask(__name__)
-app.config['TESTING'] = False
-
-cors = CORS(app, origins=["http://localhost:3000"], headers=['Content-Type'],
-            expose_headers=['Access-Control-Allow-Origin'], supports_credentials=True)
-api = Api(app)
-logging.getLogger('flask_cors').level = logging.DEBUG
 
 
 # # 로그인할때 세션에 집어넣어음.
@@ -74,7 +92,7 @@ def login_required():
     return _decorated_function
 
 
-@app.route('/login/', methods=['POST', 'OPTION'])
+@app.route('/login', methods=['POST', 'OPTION'])
 def Login():
     if 'access_token' in request.headers:
         access_token = request.headers['access_token']
@@ -107,7 +125,7 @@ def Login():
         return {"result": False, "reason": "Req didn't has token"}
 
 
-@app.route('/logout/', methods=['POST', 'OPTION'])
+@app.route('/logout', methods=['POST', 'OPTION'])
 @login_required()
 def Logout():
     print("로그아웃 SEQ", session)
@@ -448,5 +466,5 @@ api.add_resource(Account, '/account/info')
 # 서버 실행
 if __name__ == '__main__':
     app.secret_key = getattr(sys.modules[__name__], 'FN_FLASK_SECRET_KEY')
-    app.run(debug=True, port=8000)
+    app.run(port=8000)
     print("앱켜짐")

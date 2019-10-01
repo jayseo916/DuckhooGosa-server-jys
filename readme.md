@@ -3,6 +3,7 @@
 ### 앱실행
 1) source /venv/bin/activate
 2) python3 /app/app.py
+3) python3 /app/app.py production   [서버실행]
 
 ### 패키지 설치 후엔 패키지를 추가.
 pip3 freeze > requirements.txt
