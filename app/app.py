@@ -140,8 +140,16 @@ def helloroute():
 class CommentList(Resource):
     @login_required()
     def get(self, problem_id):
-        result = commentsCollections.find_all({"problem_id": problem_id})
-        return result
+        temp = commentsCollections.find({"problem_id": problem_id}).sort('day', -1)
+        result = []
+        for v in temp:
+            v['_id'] = str(v['_id'])
+            v['day'] = str(v['day'])
+            nick = usersCollections.find_one({"email": v['email']})
+            if type(nick) != None:
+                v['nick'] = nick['nickname']
+                result.append(v)
+        return json.dumps(list(result))
 
 
 class Comment(Resource):
