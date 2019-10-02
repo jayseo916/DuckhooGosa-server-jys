@@ -75,7 +75,7 @@ usersCollections = db.users
 # # 로그인할때 세션에 집어넣어음.
 @app.route('/*', methods=['OPTION'])
 def option():
-    print("옵션 전체 도메인")
+    print("OPTION RCVD 전체 도메인")
     return "GOOD"
 
 
@@ -153,6 +153,7 @@ parser.add_argument('genre')
 
 @app.route("/")
 def helloroute():
+    print("최초접속 확인")
     return "hello"
 
 
@@ -473,5 +474,5 @@ api.add_resource(Account, '/account/info')
 if __name__ == '__main__':
     app.secret_key = getattr(sys.modules[__name__], 'FN_FLASK_SECRET_KEY')
     print(app.config)
-    app.run(port=app.config['PORT'], host=app.config['SERVER_HOST'])
+    app.run(port=app.config['PORT'], host=app.config['SERVER_HOST'], ssl_context='adhoc')
     print("🍨__APP START__")

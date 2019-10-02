@@ -11,7 +11,7 @@ class DevelopmentConfig(Base):
     PORT = 8000
     SERVER_HOST = '127.0.0.1'
     DATABASE_NAME = 'duckdevdb'
-    CLIENT_HOST = 'http://localhost:3000'
+    CLIENT_HOST = 'https://localhost:3000'
 
 
 class TestConfig(Base):
