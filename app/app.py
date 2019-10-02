@@ -19,7 +19,6 @@ import config
 
 from setConfigure import set_secret
 
-# 앱선언
 app = Flask(__name__)
 
 set_secret(__name__)
@@ -45,6 +44,7 @@ else:
     raise ValueError('Invalid environment name')
 
 # flask CORS
+print(app.config['CLIENT_HOST'])
 cors = CORS(app, origins=[app.config['CLIENT_HOST']], headers=['Content-Type'],
             expose_headers=['Access-Control-Allow-Origin'], supports_credentials=True)
 # flask REST-api
@@ -75,7 +75,7 @@ usersCollections = db.users
 # # 로그인할때 세션에 집어넣어음.
 @app.route('/*', methods=['OPTION'])
 def option():
-    print("OPTION RCVD 전체 도메인")
+    # print("OPTION RCVD 전체 도메인")
     return "GOOD"
 
 
@@ -84,10 +84,10 @@ def login_required():
         @wraps(f)
         def __decorated_function(*args, **kwargs):
             if 'logged_in' in session:
-                print("🍎", session['email'], "님 세션 통과")
+                print("🍎", session['email'], "session pass")
                 return f(*args, **kwargs)
             else:
-                print("✂️ ___세션없음___")
+                print("✂️ ___no session___")
                 return "NO SESSION ERROR"
 
         return __decorated_function
@@ -116,7 +116,7 @@ def Login():
                     "solution": []
                 }
                 usersCollections.insert_one(user)
-                print("🎉", email, " 유저생성완료")
+                print("🎉", email, " inputed user")
 
             return {'result': True}
         else:
@@ -129,13 +129,13 @@ def Login():
 @app.route('/logout', methods=['POST', 'OPTION'])
 @login_required()
 def Logout():
-    print("로그아웃 SEQ", session)
+    print("logout SEQ", session)
     session.clear()
     return {'result': True}
 
 
-# app.secret_key = getattr(sys.modules[__name__], 'FN_FLASK_SECRET_KEY')
-# app.register_blueprint(google_auth.app)
+app.secret_key = getattr(sys.modules[__name__], 'FN_FLASK_SECRET_KEY')
+app.register_blueprint(google_auth.app)
 
 # json 쪼개는 로직
 parser = reqparse.RequestParser()
@@ -153,7 +153,7 @@ parser.add_argument('genre')
 
 @app.route("/")
 def helloroute():
-    print("최초접속 확인")
+    print("first hello")
     return "hello"
 
 
@@ -182,7 +182,7 @@ class Comment(Resource):
 class ProblemGet(Resource):
     @login_required()
     def get(self, problem_id):
-        print(problem_id, "문제지 주세요.")
+        print(problem_id, "give me problem")
         result = problemsCollections.find_one(ObjectId(problem_id))
         result['_id'] = str(result['_id'])
         return result
@@ -203,7 +203,7 @@ class Problem(Resource):
         for problem in content['problems']:
             problem['tryCount'] = 0
             problem['okCount'] = 0
-        pprint.pprint(content)
+        # pprint.pprint(content)
         result_id = problemsCollections.insert_one(content).inserted_id
         obj = {"_id": str(result_id)}
         return json.dumps(obj)
@@ -256,9 +256,9 @@ class ProblemGenre(Resource):  # 장르검색
         problemsCollections.drop_index('*')
         count = problemsCollections.count()
         word = args['genre']
-        print('인덱스', problemsCollections.index_information())
+        # print('인덱스', problemsCollections.index_information())
         print(word)
-        print(type(word))
+        # print(type(word))
         if count < int(args['next_problem']):
             return json.dumps([])
         problemsCollections.create_index([('genre', 'text')])
@@ -334,7 +334,7 @@ class ProblemSolution(Resource):
     @login_required()
     def post(self):
         content = request.get_json()
-        print(content, "__제출된 답__")
+        # print(content, "__제출된 답__")
         original = problemsCollections.find_one(ObjectId(content['problem_id']))
         original_answers = []
         for problem in original['problems']:
@@ -347,14 +347,14 @@ class ProblemSolution(Resource):
                 if choice['answer']:
                     arr.append(index)
             original_answers.append(arr)
-        print(original_answers, "__ 진짜 답 __")
+        # print(original_answers, "__ 진짜 답 __")
 
         try_count = len(original_answers)
         right_count = 0
         check_problem = []
         temp_obj = {}
         for i, answer in enumerate(content["answer"]):
-            print(answer == original_answers[i], "정답 비교 <>")
+            # print(answer == original_answers[i], "정답 비교 <>")
             if answer == original_answers[i]:
                 right_count = right_count + 1
                 problemsCollections.update_one({"_id": ObjectId(content['problem_id'])},
@@ -474,5 +474,5 @@ api.add_resource(Account, '/account/info')
 if __name__ == '__main__':
     app.secret_key = getattr(sys.modules[__name__], 'FN_FLASK_SECRET_KEY')
     print(app.config)
-    app.run(port=app.config['PORT'], host=app.config['SERVER_HOST']')
+    app.run(port=app.config['PORT'], host=app.config['SERVER_HOST'])
     print("🍨__APP START__")
