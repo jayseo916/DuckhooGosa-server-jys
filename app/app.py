@@ -474,5 +474,5 @@ api.add_resource(Account, '/account/info')
 if __name__ == '__main__':
     app.secret_key = getattr(sys.modules[__name__], 'FN_FLASK_SECRET_KEY')
     print(app.config)
-    app.run(port=app.config['PORT'], host=app.config['SERVER_HOST'], ssl_context='adhoc')
+    app.run(port=app.config['PORT'], host=app.config['SERVER_HOST']')
     print("🍨__APP START__")
