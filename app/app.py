@@ -456,6 +456,30 @@ class AccountNick(Resource):
         return 'ok'
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+class AccountImg(Resource):
+    @login_required()
+    def post(self):
+        pic = request.get_json()
+        img = pic['img']
+        usersCollections.update_one({'email': session['email']},
+                                    {'$set': {"img": img}})
+        return 'ok'
+
+
 # URL Router에 맵핑한다.(Rest URL정의)
 
 # comments _ POST
@@ -479,6 +503,8 @@ api.add_resource(Problem, '/problem')
 # account - GET, POST
 api.add_resource(Account, '/account/info')
 api.add_resource(AccountNick, '/account/nick')
+
+api.add_resource(AccountImg, '/account/img')
 
 # 서버 실행
 if __name__ == '__main__':
