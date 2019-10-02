@@ -213,15 +213,16 @@ class ProblemMain(Resource):
     def post(self):
         args = parser.parse_args()
         count = problemsCollections.count()
-        if count < int(args['next_problem']):
-            return json.dumps([])
-
+        if count <= int(args['next_problem']):
+            return json.dumps('NoData')
         sortedproblem = problemsCollections.find().sort('date', -1).skip(int(args['next_problem'])) \
             .limit(5)
         result = []
         for v in sortedproblem:
             v['_id'] = str(v['_id'])
             result.append(v)
+        if len(result) is 0:
+            return json.dumps('NoData')
         return json.dumps(result)
 
     @login_required()
@@ -236,8 +237,8 @@ class ProblemSearch(Resource):  # 제목 OR 검색
         problemsCollections.drop_index('*')
         count = problemsCollections.count()
         word = args['word']
-        if count < int(args['next_problem']):
-            return json.dumps([])
+        if count <= int(args['next_problem']):
+            return json.dumps('NoData')
         problemsCollections.create_index([('title', 'text')])
         sortedproblem = problemsCollections.find({"$text": {"$search": word}}).sort('date', -1).skip(
             int(args['next_problem'])) \
@@ -246,6 +247,8 @@ class ProblemSearch(Resource):  # 제목 OR 검색
         for v in sortedproblem:
             v['_id'] = str(v['_id'])
             result.append(v)
+        if len(result) is 0:
+            return json.dumps('NoData')
         return json.dumps(result)
 
 
@@ -256,11 +259,8 @@ class ProblemGenre(Resource):  # 장르검색
         problemsCollections.drop_index('*')
         count = problemsCollections.count()
         word = args['genre']
-        # print('인덱스', problemsCollections.index_information())
-        print(word)
-        # print(type(word))
-        if count < int(args['next_problem']):
-            return json.dumps([])
+        if count <= int(args['next_problem']):
+            return json.dumps('NoData')
         problemsCollections.create_index([('genre', 'text')])
         sortedproblem = problemsCollections.find({"$text": {"$search": word}}).sort('date', -1).skip(
             int(args['next_problem'])) \
@@ -269,67 +269,11 @@ class ProblemGenre(Resource):  # 장르검색
         for v in sortedproblem:
             v['_id'] = str(v['_id'])
             result.append(v)
-
+        if len(result) is 0:
+            return json.dumps('NoData')
         return json.dumps(result)
 
-
-# class ProblemSearch(Resource):     #제목 and 검색
-#     # @login_required()
-#     def post(self):
-#         args = parser.parse_args()
-#         # count = problemsCollections.count()
-#         count = 13
-#         word = args['word']
-#         start = int(args['start'])
-#         listword = word.split()
-#         if count < int(args['next_problem']):
-#             return json.dumps([])
-#         problemsCollections.create_index([('title', 'text')])
-#         # 검색
-#         array = []
-#         flag = 1
-#         add = 0  #더한 갯수
-#         while start < count or len(array) < 3:
-#             sortedproblem = list(problemsCollections.find({"$text": {"$search": listword[0]}}).sort('date', -1).skip(start).limit(start + 10))
-#             for problem in enumerate(sortedproblem):   #한개씩 살펴볼 문제
-#                 for word in enumerate(listword):  #존재해야 하는 단어 목록
-#                     if word[1] not in problem[1]['title']:
-#                         flag = 0
-#                         print('타이틀', problem[1]['title'])
-#                         print('검색단어', word[1])
-#                         break
-#                 if flag is 0:
-#                     continue
-#                 else:
-#                     print('넣을문제', problem[1])
-#                     add = problem[0] + 1
-#                     array.append(problem[1])
-#
-#                 if len(array) is 3:
-#                     break
-#
-#             if len(array) is 3:
-#                 start = start + add
-#                 break
-#             else:
-#                 start = start + 10
-##################################################################
-#         print(array)
-#
-#         # sortedproblem.create_index([('title', 'text')])
-#         # listword.remove(listword[0])
-#         # for x in listword:
-#         #     sortedproblem = sortedproblem.collation({"$text": {"$search": x}})
-#
-#         # sortedproblem.sort('date', -1).skip(int(args['next_problem'])).limit(3)
-#         result = []
-#         # for v in sortedproblem:
-#         #     v['_id'] = str(v['_id'])
-#         #
-#         #     result.append(v)
-#         return json.dumps(result)
-
-
+      
 class ProblemSolution(Resource):
     @login_required()
     def post(self):
