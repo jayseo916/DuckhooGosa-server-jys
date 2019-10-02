@@ -11,7 +11,7 @@ class DevelopmentConfig(Base):
     PORT = 8000
     SERVER_HOST = '127.0.0.1'
     DATABASE_NAME = 'duckdevdb'
-    CLIENT_HOST = 'http://localhost:3000'
+    CLIENT_HOST = 'https://localhost:3000'
 
 
 class TestConfig(Base):
@@ -20,7 +20,7 @@ class TestConfig(Base):
     PORT = 7999
     SERVER_HOST = 'ec2-54-180-82-249.ap-northeast-2.compute.amazonaws.com'
     DATABASE_NAME = 'ducktestdb'
-    CLIENT_HOST = 'http://duckhoogosa-client-deploy.s3-website.ap-northeast-2.amazonaws.com'
+    CLIENT_HOST = 'https://duckhoo.site'
 
 
 class ProductionConfig(Base):
@@ -28,4 +28,4 @@ class ProductionConfig(Base):
     PORT = 8000
     SERVER_HOST = 'ec2-54-180-82-249.ap-northeast-2.compute.amazonaws.com'
     DATABASE_NAME = 'duckproductiondb'
-    CLIENT_HOST = 'http://duckhoogosa-client-deploy.s3-website.ap-northeast-2.amazonaws.com'
+    CLIENT_HOST = 'https://duckhoo.site'
