@@ -231,6 +231,7 @@ class ProblemMain(Resource):
             return json.dumps('NoData')
         return json.dumps(result)
 
+
     @login_required()
     def get(self):
         return "good!"
