@@ -157,7 +157,7 @@ def helloroute():
 
 
 class CommentList(Resource):
-    @login_required()
+    # @login_required()
     def get(self, problem_id):
         temp = commentsCollections.find({"problem_id": problem_id}).sort('day', -1)
         result = []
@@ -172,7 +172,7 @@ class CommentList(Resource):
 
 
 class Comment(Resource):
-    @login_required()
+    # @login_required()
     def post(self):
         args = parser.parse_args()
         comment = {
@@ -187,7 +187,7 @@ class Comment(Resource):
 
 
 class ProblemGet(Resource):
-    @login_required()
+    # @login_required()
     def get(self, problem_id):
         print(problem_id, "give me problem")
         result = problemsCollections.find_one(ObjectId(problem_id))
@@ -196,7 +196,7 @@ class ProblemGet(Resource):
 
 
 class Problem(Resource):
-    @login_required()
+    # @login_required()
     def post(self):
         args = parser.parse_args()
         obj = {"link": args['representImg'], "filename": getFileNameFromLink(args['representImg'])}
@@ -282,7 +282,7 @@ class ProblemGenre(Resource):  # 장르검색
 
       
 class ProblemSolution(Resource):
-    @login_required()
+    # @login_required()
     def post(self):
         content = request.get_json()
         # print(content, "__제출된 답__")
@@ -355,7 +355,7 @@ class ProblemSolution(Resource):
 
 
 class ProblemEvalation(Resource):
-    @login_required()
+    # @login_required()
     def post(self):
         evaluation = request.get_json()
         # print('평가', evaluation)
@@ -377,7 +377,7 @@ class ProblemEvalation(Resource):
 
 
 class Account(Resource):
-    @login_required()
+    # @login_required()
     def get(self):
         user = usersCollections.find_one({'email': session['email']})
         problems = problemsCollections.find({'email': session['email']})
@@ -398,7 +398,7 @@ class Account(Resource):
         return user
 
 class AccountNick(Resource):
-    @login_required()
+    # @login_required()
     def post(self):
         evaluation = request.get_json()
         nick = evaluation['nick']
@@ -422,7 +422,7 @@ class AccountNick(Resource):
 
 
 class AccountImg(Resource):
-    @login_required()
+    # @login_required()
     def post(self):
         pic = request.get_json()
         img = pic['img']
