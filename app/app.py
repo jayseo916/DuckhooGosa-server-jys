@@ -1,4 +1,3 @@
-# -'-coding:utf-8-'-
 import sys
 import json
 import datetime
@@ -84,10 +83,10 @@ def login_required():
         @wraps(f)
         def __decorated_function(*args, **kwargs):
             if 'logged_in' in session:
-                print("🍎", session['email'], "session pass")
+                print(session['email'], "session pass")
                 return f(*args, **kwargs)
             else:
-                print("✂️ ___no session___")
+                print("️ ___no session___")
                 return "NO SESSION ERROR"
 
         return __decorated_function
@@ -116,7 +115,7 @@ def Login():
                     "solution": []
                 }
                 usersCollections.insert_one(user)
-                print("🎉", email, " inputed user")
+                print("", email, " inputed user")
 
             return {'result': True}
         else:
@@ -448,4 +447,4 @@ if __name__ == '__main__':
     app.secret_key = getattr(sys.modules[__name__], 'FN_FLASK_SECRET_KEY')
     print(app.config)
     app.run(port=app.config['PORT'], host=app.config['SERVER_HOST'])
-    print("🍨__APP START__")
+    print("__APP START__")
