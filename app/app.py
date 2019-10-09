@@ -17,7 +17,6 @@ import logging
 import sys
 import config
 from setConfigure import set_secret
-now = datetime.now()
 app = Flask(__name__)
 
 set_secret(__name__)
@@ -192,6 +191,7 @@ class Comment(Resource):
     @login_required()
     def post(self):
         args = parser.parse_args()
+        now = datetime.now()
         comment = {
             "email": args.email,
             "problem_id": args.problem_id,
@@ -375,6 +375,7 @@ class ProblemEvalation(Resource):
     def post(self):
         evaluation = request.get_json()
         # print('평가', evaluation)
+        now = datetime.now()
         rating = {
             "problem_id": evaluation['_id'],
             "quality": evaluation['evalQ'],
