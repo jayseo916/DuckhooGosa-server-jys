@@ -1,7 +1,7 @@
 # -'-coding:utf-8-'-
 import sys
 import json
-import datetime
+from datetime import datetime
 import pprint
 import time
 from flask import Flask, session, request
@@ -16,9 +16,8 @@ from flask_cors import CORS, cross_origin
 import logging
 import sys
 import config
-
 from setConfigure import set_secret
-
+now = datetime.now()
 app = Flask(__name__)
 
 set_secret(__name__)
@@ -175,7 +174,6 @@ class CommentList(Resource):
 
         info = {'totalq': totalq, 'totald': totald, 'count': count, 'nick': str(user['nickname']),
                 'title': result['title'], 'solvedUsers': result['tryCount'] / len(result['problems'])}
-        print('info', info)
         result = []
         for v in temp:
             if v['email'] != None:
@@ -187,7 +185,6 @@ class CommentList(Resource):
                     v['img'] = nick['img']
                     result.append(v)
         info['result'] = list(result)
-        print('결과', result)
         return json.dumps(info)
 
 
@@ -199,7 +196,7 @@ class Comment(Resource):
             "email": args.email,
             "problem_id": args.problem_id,
             "comment": args.comment,
-            "day": int(time.mktime(datetime.datetime.utcnow().timetuple())) * 1000}
+            "day": now}
 
         result_id = commentsCollections.insert_one(comment).inserted_id
         obj = {"_id": str(result_id)}
@@ -388,8 +385,9 @@ class ProblemEvalation(Resource):
             "problem_id": evaluation['_id'],
             "email": evaluation['email'],
             "comment": evaluation['comments'],
-            "day": datetime.datetime.utcnow()
+            "day": now
         }
+        print('시간', comment['day'])
         commentsCollections.insert_one(comment)
         ratingsColeections.insert_one(rating)
         return "good!"
