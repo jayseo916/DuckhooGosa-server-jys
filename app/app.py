@@ -175,17 +175,19 @@ class CommentList(Resource):
 
         info = {'totalq': totalq, 'totald': totald, 'count': count, 'nick': str(user['nickname']),
                 'title': result['title'], 'solvedUsers': result['tryCount'] / len(result['problems'])}
-
+        print('info', info)
         result = []
         for v in temp:
-            v['_id'] = str(v['_id'])
-            v['day'] = str(v['day'])
-            nick = usersCollections.find_one({"email": v['email']})
-            if type(nick) != None:
-                v['nick'] = nick['nickname']
-                v['img'] = nick['img']
-                result.append(v)
+            if v['email'] != None:
+                v['_id'] = str(v['_id'])
+                v['day'] = str(v['day'])
+                nick = usersCollections.find_one({"email": v['email']})
+                if type(nick) != None:
+                    v['nick'] = nick['nickname']
+                    v['img'] = nick['img']
+                    result.append(v)
         info['result'] = list(result)
+        print('결과', result)
         return json.dumps(info)
 
 
