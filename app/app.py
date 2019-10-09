@@ -157,7 +157,7 @@ def helloroute():
 
 
 class CommentList(Resource):
-    # @login_required()
+    @login_required()
     def get(self, problem_id):
         temp = commentsCollections.find({"problem_id": problem_id}).sort('day', -1)
         rating = ratingsColeections.find({'problem_id': problem_id})
@@ -190,7 +190,7 @@ class CommentList(Resource):
 
 
 class Comment(Resource):
-    # @login_required()
+    @login_required()
     def post(self):
         args = parser.parse_args()
         comment = {
@@ -299,7 +299,7 @@ class ProblemGenre(Resource):  # 장르검색
 
 
 class ProblemSolution(Resource):
-    # @login_required()
+    @login_required()
     def post(self):
         content = request.get_json()
         # print(content, "__제출된 답__")
@@ -372,7 +372,7 @@ class ProblemSolution(Resource):
 
 
 class ProblemEvalation(Resource):
-    # @login_required()
+    @login_required()
     def post(self):
         evaluation = request.get_json()
         # print('평가', evaluation)
@@ -416,7 +416,7 @@ class Account(Resource):
 
 
 class AccountNick(Resource):
-    # @login_required()
+    @login_required()
     def post(self):
         evaluation = request.get_json()
         nick = evaluation['nick']
@@ -426,7 +426,7 @@ class AccountNick(Resource):
 
 
 class AccountImg(Resource):
-    # @login_required()
+    @login_required()
     def post(self):
         pic = request.get_json()
         img = pic['img']
