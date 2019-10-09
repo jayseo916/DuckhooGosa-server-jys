@@ -394,7 +394,7 @@ class ProblemEvalation(Resource):
 
 
 class Account(Resource):
-    # @login_required()
+    @login_required()
     def get(self):
         user = usersCollections.find_one({'email': session['email']})
         problems = problemsCollections.find({'email': session['email']})
