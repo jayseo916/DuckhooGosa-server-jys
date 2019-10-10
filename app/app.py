@@ -1,6 +1,6 @@
 import sys
 import json
-import datetime
+from datetime import datetime
 import pprint
 import time
 from flask import Flask, session, request
@@ -15,9 +15,7 @@ from flask_cors import CORS, cross_origin
 import logging
 import sys
 import config
-
 from setConfigure import set_secret
-
 app = Flask(__name__)
 
 set_secret(__name__)
@@ -107,7 +105,7 @@ def Login():
             if result is None:
                 user = {
                     "email": email,
-                    "nickname": None,
+                    "nickname": '익명',
                     "img": None,
                     "tier": None,
                     "answerCount": 0,
@@ -159,27 +157,45 @@ class CommentList(Resource):
     @login_required()
     def get(self, problem_id):
         temp = commentsCollections.find({"problem_id": problem_id}).sort('day', -1)
+        rating = ratingsColeections.find({'problem_id': problem_id})
+        result = problemsCollections.find_one(ObjectId(problem_id))
+        user = usersCollections.find_one({"email": result['email']})
+
+        totalq = 0
+        totald = 0
+        count = 0
+        for v in rating:
+            if type(v['quality']) == type(1):
+                totalq = totalq + v['quality']
+                totald = totald + v['dificulty']
+                count = count + 1
+
+        info = {'totalq': totalq, 'totald': totald, 'count': count, 'nick': str(user['nickname']),
+                'title': result['title'], 'solvedUsers': result['tryCount'] / len(result['problems'])}
         result = []
         for v in temp:
-            v['_id'] = str(v['_id'])
-            v['day'] = str(v['day'])
-            nick = usersCollections.find_one({"email": v['email']})
-            if type(nick) != None:
-                v['nick'] = nick['nickname']
-                v['img'] = nick['img']
-                result.append(v)
-        return json.dumps(list(result))
+            if v['email'] != None:
+                v['_id'] = str(v['_id'])
+                v['day'] = str(v['day'])
+                nick = usersCollections.find_one({"email": v['email']})
+                if type(nick) != None:
+                    v['nick'] = nick['nickname']
+                    v['img'] = nick['img']
+                    result.append(v)
+        info['result'] = list(result)
+        return json.dumps(info)
 
 
 class Comment(Resource):
     @login_required()
     def post(self):
         args = parser.parse_args()
+        now = datetime.now()
         comment = {
             "email": args.email,
             "problem_id": args.problem_id,
             "comment": args.comment,
-            "day": int(time.mktime(datetime.datetime.utcnow().timetuple())) * 1000}
+            "day": now}
 
         result_id = commentsCollections.insert_one(comment).inserted_id
         obj = {"_id": str(result_id)}
@@ -229,6 +245,7 @@ class ProblemMain(Resource):
         if len(result) is 0:
             return json.dumps('NoData')
         return json.dumps(result)
+
 
     @login_required()
     def get(self):
@@ -357,6 +374,7 @@ class ProblemEvalation(Resource):
     def post(self):
         evaluation = request.get_json()
         # print('평가', evaluation)
+        now = datetime.now()
         rating = {
             "problem_id": evaluation['_id'],
             "quality": evaluation['evalQ'],
@@ -367,8 +385,9 @@ class ProblemEvalation(Resource):
             "problem_id": evaluation['_id'],
             "email": evaluation['email'],
             "comment": evaluation['comments'],
-            "day": datetime.datetime.utcnow()
+            "day": now
         }
+        print('시간', comment['day'])
         commentsCollections.insert_one(comment)
         ratingsColeections.insert_one(rating)
         return "good!"
