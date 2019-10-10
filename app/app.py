@@ -374,7 +374,7 @@ class ProblemEvalation(Resource):
     @login_required()
     def post(self):
         evaluation = request.get_json()
-        # print('평가', evaluation)
+        # `print`('평가', evaluation)
         now = datetime.now()
         rating = {
             "problem_id": evaluation['_id'],
@@ -388,7 +388,7 @@ class ProblemEvalation(Resource):
             "comment": evaluation['comments'],
             "day": now
         }
-        print('시간', comment['day'])
+        print('time', comment['day'])
         commentsCollections.insert_one(comment)
         ratingsColeections.insert_one(rating)
         return "good!"
