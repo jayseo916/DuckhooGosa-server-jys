@@ -8,7 +8,7 @@ from pymongo import MongoClient
 from bson.objectid import ObjectId
 from flask_restful import reqparse, abort, Api, Resource
 from util import getFileNameFromLink
-from scheduleModule import imageScheduleQueue
+# from scheduleModule import imageScheduleQueue
 from requests import get
 from functools import wraps
 from flask_cors import CORS, cross_origin
@@ -214,7 +214,6 @@ class Problem(Resource):
     def post(self):
         args = parser.parse_args()
         obj = {"link": args['representImg'], "filename": getFileNameFromLink(args['representImg'])}
-        imageScheduleQueue.append(obj)
         content = request.get_json()
         content['nickName'] = "아무개 G"
         content['ratingNumber'] = 0

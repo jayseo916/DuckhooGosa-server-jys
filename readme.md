@@ -49,3 +49,6 @@ https://stackoverflow.com/questions/38134086/how-to-run-pylint-with-pycharm
 
 ## 디버깅.
 - 셋팅 다되어있는데 CORS나면 그냥 잘못된 라우팅 또는 로직이 터져서 그냥 응답이 안간거다. 
+
+ELP (외부 공개용 고정 아이피 )>>  13.209.226.132
+AWS 내부용 아이피 >> 172.31.32.164
